@@ -75,14 +75,15 @@ Persisting Data:
 •	Audio Prefs
 
 
-1st: make placeholder art
-2nd: make movement code
-3rd: enemy movement code
-4th: GameManager Code
-5th: Collection code
-6th: Scores
-7th:Audio
-8th: Scene changing
+1st: make placeholder art (1st day)
+2nd: make movement code (2nd day)
+3rd: enemy movement code (2nd day)
+4th: GameManager Code (2nd day)
+5th: Collection code (3rd day)
+6th: Scores (3rd day)
+7th: Audio (3rd day)
+8th: Scene changing (4th day)
+9th: Final Art (4th day)
 
 Physics
 •	One or more objects in your game must use Unity physics.
