@@ -1,0 +1,99 @@
+SCRAPPER
+Jameson Brown
+Github: https://github.com/avo-doggo/JBrown_GPE104_Scrapper 
+
+
+A game, where the player is a scrap collector, breaking into ships and collecting parts, while avoiding security drones and crew members.
+
+The core gameplay loop is:
+•	The player is deposited onto a spaceship.
+•	The player must go through the ship and collect different scrap. Different types of scrap give different amounts of points.
+•	There will be small, medium, and large scrap.
+•	The player has to reach at least the designated amount of points for the level before they can escape the ship. 
+•	Extra points collected after the required amount means a better score. There is  a  star system: 1 star,  2 star, 3 star.
+•	The player, while collecting scrap, must avoid enemies: Drones and Crew.
+•	Drones alert crew to player position, but do not cause a game over. Crew, if they catch they player, will cause a game over.
+•	Once all scrap is collected, the player must return to the start without being caught.
+•	Objectives example for stars:
+o	Complete level: 1 Star
+o	Reach X points: 2 Star
+o	Do not get spotted by drones: 3 Star
+
+Game manager: 
+•	Don’tdestroyonload
+•	Contain audio for various sound cues.
+•	Contain volume mixer.
+•	Save volume prefs
+•	Enemy list
+•	Scrap List
+•	Points
+•	Active Scene 
+•	Scrap finished collecting function  (bool)
+•	Game over function (bool)
+•	Game won function (after all levels are complete)
+Audio:
+•	Add an audio control setting for master, music, and sfx
+•	Allow players to access audio controls/restart level from pause menu
+•	Save audio levels (game manager)
+•	Sound for:
+o	Drones (Alarm play clip at point)
+o	Crew
+o	Walking
+o	Collecting
+o	Game Over
+o	Game Won
+o	Stars
+UI:
+•	Game  starts with press any key to begin
+•	Have UI that stretches across screen
+•	UI includes points on gameplay screen
+•	Inventory button so player knows what has been collected
+•	Options screen UI allows volume change
+•	Options screen UI allow restart or menu
+•	Main menu allows play, credits, options, or quit
+Pawn/Controller:
+•	Controller
+•	ControllerPlayer
+•	ControllerAI
+•	Pawn
+•	PawnScrapper
+o	Make movement speeds available in editor
+o	Make Points Amounts Available In editor
+o	Make everything that’s changeable available in editor
+Movement:
+•	ControllerPlayer Reads keys and joystick controls
+•	Keyboard first
+•	Joystick second
+•	Use GetButton  AND GetButtonDown
+•	Get button for single press
+•	Buttondown for moving
+•	AI movement (crew and drones) set position
+•	Enemies have trigger collider so certain actions trigger on collision with player
+Persisting Data:
+•	Scores
+•	Level completion
+•	Audio Prefs
+
+
+1st: make placeholder art
+2nd: make movement code
+3rd: enemy movement code
+4th: GameManager Code
+5th: Collection code
+6th: Scores
+7th:Audio
+8th: Scene changing
+
+Physics
+•	One or more objects in your game must use Unity physics.
+o	One or more objects must add force to move.
+o	One or more objects must use gravity.
+o	One or more objects must use drag to slow movement.
+•	Your game must have some sort of data that persists between game sessions.
+Ship It
+•	Your repo must be publicly available on your GitHub
+•	You must make a build and make a .ZIP file of the build (executable and data folder) available to the public. 
+Boards
+•	You must add the project to the appropriate objectives on your boards website.
+Polish
+•	You WILL be graded on your game's polish. It must look good and be fun to play. 
