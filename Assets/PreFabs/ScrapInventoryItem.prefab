@@ -121,9 +121,9 @@ MonoBehaviour:
   scrapImage: {fileID: 9093625099752398225}
   scrapName: {fileID: 659518775206846521}
   scrapValue: {fileID: 2057608583724708190}
-  largeScrapSprite: {fileID: -8929238029315636817, guid: 74075ae3b563db346ac9b5554b09fe6c, type: 3}
-  mediumScrapSprite: {fileID: -4483486779991115433, guid: fbf18239b10f56d4d9fdbac9057f6b90, type: 3}
-  smallScrapSprite: {fileID: -1976950337034474139, guid: db886bde28bc56d4f9241eace8edcecd, type: 3}
+  largeScrapSprite: {fileID: -8860777122070263750, guid: 16ff23f80a5bf544b94c2af3b6a5d3d8, type: 3}
+  mediumScrapSprite: {fileID: 2593728943192071365, guid: 26a26ba77951dd14cad30d9098d638ee, type: 3}
+  smallScrapSprite: {fileID: 6172789880363810011, guid: 00f3c445bc269d84dbe719b904874991, type: 3}
 --- !u!1 &1336854725526650529
 GameObject:
   m_ObjectHideFlags: 0

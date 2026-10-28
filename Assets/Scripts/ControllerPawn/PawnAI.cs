@@ -1,113 +1,160 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 public class PawnAI : Pawn
 {
     [Header("Enemy Stats")]
-    //what iks enemys movement speed
     public float movementSpeed;
-    //is enemy moviung on X axis
-    public bool movementX;
-    //is enemy moving on Y axis
-    public bool movementY;
-    //Is enemy moving up
-    public bool movementUp;
-    //is enemy moving right
-    public bool movementRight;
 
+    [Header("AI Type")]
     public bool isCrewmate;
     public bool isDrone;
 
+    [Header("AI State")]
     public bool isAlerted;
     public bool investigating;
+    public bool returning;
+    public bool chasing;
 
+    [Header("AI Positions")]
     public Vector3 investigatePosition;
     public Vector3 patrolPosition;
-    public bool hasPatrolPosition;
-    public bool returning;
 
+    public bool hasPatrolPosition;
+
+    [Header("Target")]
     public Transform target;
 
-    public Rigidbody2D rb;
+    [Header("Patrol")]
+    public Transform[] patrolPoints;
+    public int currentPatrolPoint;
+
+    private NavMeshAgent agent;
+
+    [Header("Alarm Sound")]
+    public AudioSource audioSource;
+    public AudioClip alarmSound;
 
 
+    //INTERACT- currently not using
 
     public override void interact()
     {
         //Interact code for AI
     }
 
-    public override void moveUp()
-    {
-        transform.position = transform.position + Vector3.up * Time.deltaTime * movementSpeed;
-    }
-    public override void moveDown()
-    {
-        transform.position = transform.position + -Vector3.up * Time.deltaTime * movementSpeed;
-    }
 
-    public override void moveLeft()
-    {
-        transform.position = transform.position + -Vector3.right * Time.deltaTime * movementSpeed;
-    }
+    //START
 
-    public override void moveRight()
+    private void Start()
     {
-        transform.position = transform.position + Vector3.right * Time.deltaTime * movementSpeed;
-    }
+        agent = GetComponent<NavMeshAgent>();
 
-    private void OnTriggerEnter2D(UnityEngine.Collider2D collision)
-    {//on collision with objects tagged wall, the  enemy will change direction
-        if (collision.gameObject.CompareTag("Wall"))
+        if (agent == null)
         {
-            if(movementX)
+            Debug.LogError(gameObject.name + " does not have a NavMeshAgent!");
+            return;
+        }
+
+        agent.speed = movementSpeed;
+
+        // 2D NavMesh settings
+        agent.updateRotation = false;
+        agent.updateUpAxis = false;
+
+        patrolPosition = transform.position;
+        hasPatrolPosition = true;
+
+        if (!agent.isOnNavMesh)
+        {
+            Debug.LogError(gameObject.name + " STARTED OFF THE NAVMESH!");
+        }
+        else
+        {
+            Debug.Log(gameObject.name + " is correctly on the NavMesh.");
+        }
+    }
+
+    //Update
+
+    private void Update()
+    {
+        if (agent == null || !agent.isOnNavMesh)
+        {
+            return;
+        }
+
+        //CREWMATE
+        if (isCrewmate)
+        {
+            if (chasing)
             {
-                movementRight = !movementRight;
-                Vector3 localScale = transform.localScale;
-                localScale.x *= -1f;
-                transform.localScale = localScale;
+                Seek(target);
             }
-
-            if (movementY)
+            else if (isAlerted)
             {
-                movementUp = !movementUp;
+                if (investigating)
+                {
+                    Investigate();
+                }
+                else if (returning)
+                {
+                    ReturnToPatrol();
+                }
             }
-        }
-
-        if (isDrone && collision.gameObject.CompareTag("Player"))
-        {
-            AlertCrew(collision.transform);
-        }
-    }
-
-    void AlertCrew(Transform player)
-    {
-        Debug.Log("Drone spotted player!");
-
-        foreach (PawnAI enemy in GameManager.instance.Enemies)
-        {
-            if (enemy != null && enemy.isCrewmate)
+            else
             {
-                enemy.BecomeAlerted(player, transform.position);
+                Patrol();
+            }
+        }
+
+        //DRONE
+        if (isDrone)
+        {
+            Patrol();
+        }
+    }
+
+
+    //NORMAL PATROL
+
+    void Patrol()
+    {
+        if (patrolPoints == null || patrolPoints.Length == 0)
+        {
+            Debug.LogWarning(gameObject.name + " has no patrol points!");
+            return;
+        }
+
+        if (agent == null)
+        {
+            return;
+        }
+
+        if (!agent.isOnNavMesh)
+        {
+            Debug.LogWarning(gameObject.name + " is not on the NavMesh!");
+            return;
+        }
+
+        Transform patrolPoint = patrolPoints[currentPatrolPoint];
+
+        agent.SetDestination(patrolPoint.position);
+
+        if (!agent.pathPending &&
+            agent.remainingDistance <= agent.stoppingDistance)
+        {
+            currentPatrolPoint++;
+
+            if (currentPatrolPoint >= patrolPoints.Length)
+            {
+                currentPatrolPoint = 0;
             }
         }
     }
-    //This happens when the crewmate is alerted
-    public void BecomeAlerted(Transform player, Vector3 dronePosition)
-    {
-        if (!hasPatrolPosition)
-        {
-            patrolPosition = transform.position;
-            hasPatrolPosition = true;
-        }
 
-        isAlerted = true;
-        investigating = true;
 
-        target = player;
-        investigatePosition = dronePosition;
-
-        Debug.Log("Crewmate investigating!");
-    }
+    //Look for the player
 
     public void Seek(Transform target)
     {
@@ -116,23 +163,33 @@ public class PawnAI : Pawn
             return;
         }
 
-        Vector3 direction = (target.position - transform.position).normalized;
-
-        transform.position += direction * movementSpeed * Time.deltaTime;
+        agent.SetDestination(target.position);
     }
+
+    public void StartChasing(Transform player)
+    {
+        target = player;
+
+        chasing = true;
+        investigating = false;
+        returning = false;
+
+        isAlerted = true;
+
+        Debug.Log("Crewmate spotted the player! Chasing!");
+    }
+
+
+
+    //INVESTIGATE- search for the player  wherever the alert happened, then return to position of patrol
 
     void Investigate()
     {
-        Vector3 direction = (investigatePosition - transform.position).normalized;
+        agent.SetDestination(investigatePosition);
 
-        transform.position += direction * movementSpeed * Time.deltaTime;
-
-        float distance = Vector3.Distance(
-            transform.position,
-            investigatePosition
-        );
-
-        if (distance < 0.1f)
+        //Check if crewmate reached investigation location
+        if (!agent.pathPending &&
+            agent.remainingDistance <= agent.stoppingDistance)
         {
             investigating = false;
             returning = true;
@@ -141,18 +198,16 @@ public class PawnAI : Pawn
         }
     }
 
+
+    //RETURN TO PATROL - if the crewmate doesn't dfind the player
+
     void ReturnToPatrol()
     {
-        Vector3 direction = (patrolPosition - transform.position).normalized;
+        agent.SetDestination(patrolPosition);
 
-        transform.position += direction * movementSpeed * Time.deltaTime;
-
-        float distance = Vector3.Distance(
-            transform.position,
-            patrolPosition
-        );
-
-        if (distance < 0.1f)
+        //Check if crewmate returned
+        if (!agent.pathPending &&
+            agent.remainingDistance <= agent.stoppingDistance)
         {
             returning = false;
             isAlerted = false;
@@ -162,54 +217,102 @@ public class PawnAI : Pawn
         }
     }
 
-    //START
-    void Start()
+
+    //Drone collides with player then Alerts crew
+
+    // Drone detects player
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        //get the rigid body of the attached component
-        rb = GetComponent<Rigidbody2D>();
-    }
-
-    //UPDATE
-    void FixedUpdate()
-    {
-        if (isCrewmate && isAlerted) //goes to location player triggered alert
+        if (collision.CompareTag("Player"))
         {
-            if (investigating) //looks for player
+            if (isDrone)
             {
-                Investigate();
+                AlertCrew(collision.transform);
             }
-            else if (returning) //returns to original position
-            {
-                ReturnToPatrol();
-            }
-            else if (target != null)
-            {
-                Seek(target);
-            }
-
-            return;
-        }
-
-        // Normal patrol
-        if (movementX)
-        {
-            if (movementRight)
-                moveRight();
-            else
-                moveLeft();
-        }
-
-        if (movementY)
-        {
-            if (movementUp)
-                moveUp();
-            else
-                moveDown();
         }
     }
 
+    // Crewmate physically catches player
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            if (isCrewmate && chasing)
+            {
+                Debug.Log("CREWMATE CAUGHT PLAYER!");
+
+                GameManager.instance.PlayerCaught();
+            }
+        }
+    }
+
+
+    //Alert the crewmates
+
+    void AlertCrew(Transform player)
+    {
+        Debug.Log("Drone spotted player!");
+
+        // Play alarm sound
+        if (audioSource != null && alarmSound != null)
+        {
+            audioSource.PlayOneShot(alarmSound);
+        }
+
+        foreach (PawnAI enemy in GameManager.instance.Enemies)
+        {
+            if (enemy != null && enemy.isCrewmate)
+            {
+                enemy.BecomeAlerted(player, transform.position);
+            }
+        }
+    }
+
+    //Alerted!!
+
+    public void BecomeAlerted(
+        Transform player,
+        Vector3 dronePosition)
+    {
+        //Remember where the crewmate was patrolling
+        if (!hasPatrolPosition)
+        {
+            patrolPosition = transform.position;
+            hasPatrolPosition = true;
+        }
+
+        isAlerted = true;
+        investigating = true;
+        returning = false;
+
+        target = player;
+        investigatePosition = dronePosition;
+
+        Debug.Log("Crewmate investigating!");
+    }
+
+
+   
+    //INVENTORY
+//Not included
     public override void Inventory()
     {
-        //Inventory Code
+        // Inventory Code
+    }
+
+    public override void moveUp()
+    {
+    }
+
+    public override void moveDown()
+    {
+    }
+
+    public override void moveLeft()
+    {
+    }
+
+    public override void moveRight()
+    {
     }
 }
