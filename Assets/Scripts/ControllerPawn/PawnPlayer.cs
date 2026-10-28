@@ -14,7 +14,7 @@ public class PawnPlayer : Pawn
     public InventoryUI inventoryUI;
 
     public override void interact()
-    {
+    { //Calls interact function from whatever interactable it is colliding with
         Collider2D[] objects = Physics2D.OverlapCircleAll(transform.position,interactRadius);
 
         foreach (Collider2D obj in objects)
@@ -46,7 +46,7 @@ public class PawnPlayer : Pawn
             inventoryUI.OpenInventory();
         }
     }
-
+    //Player movement
     public override void moveUp()
     {
         if (!inventoryUI.inventoryPanel.activeSelf)

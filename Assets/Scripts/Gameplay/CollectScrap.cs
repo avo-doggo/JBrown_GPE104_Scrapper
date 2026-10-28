@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class CollectScrap : Interactable
@@ -11,7 +10,12 @@ public class CollectScrap : Interactable
     [Header("Scrap Score")]
     public int scoreValue;
 
+    [Header("Collection Sound")]
+    public AudioSource audioSource;
+    public AudioClip collectSound;
+
     private CollectScrap scrapToMoveToCollected;
+
     public override void Interact()
     {
         collectScrap();
@@ -19,43 +23,29 @@ public class CollectScrap : Interactable
 
     public void collectScrap()
     {
-        GameManager.instance.AddScore(scoreValue);
-        if (GameManager.instance!=null)
+        if (GameManager.instance == null)
         {
-            if (GameManager.instance == null)
-            {
-                return;
-            }
-
-            // Remove this scrap from the level's Scrap list
-            GameManager.instance.RemoveScrap(this);
-
-            // Add this scrap to the collected list
-            GameManager.instance.AddToCollected(this);
-
-            // Add the scrap's score
-            GameManager.instance.AddScore(scoreValue);
-
-            Debug.Log("Collected scrap!");
-
-            
-
+            return;
         }
 
+        // Play collection sound
+        if (audioSource != null && collectSound != null)
+        {
+            audioSource.PlayOneShot(collectSound);
+        }
 
-    }
+        // Remove this scrap from the active Scrap list
+        GameManager.instance.RemoveScrap(this);
 
+        // Keep this scrap in the collected list
+        GameManager.instance.AddToCollected(this);
 
+        // Add the scrap's score
+        GameManager.instance.AddScore(scoreValue);
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+        Debug.Log("Collected scrap!");
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        // Make the scrap disappear from the level
+        gameObject.SetActive(false);
     }
 }
